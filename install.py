@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Build the native helper and install the per-user morning schedule."""
+from pathlib import Path
+import os
+import plistlib
+import subprocess
+import sys
+from weather import APP, DATA, ROOT
+
+DATA.mkdir(parents=True, exist_ok=True)
+contents = APP / 'Contents'
+(contents / 'MacOS').mkdir(parents=True, exist_ok=True)
+info = {'CFBundleIdentifier': 'com.vegerot.daily-weather', 'CFBundleName': 'Daily Weather',
+        'CFBundleExecutable': 'DailyWeather', 'CFBundlePackageType': 'APPL', 'CFBundleVersion': '1',
+        'LSUIElement': True, 'NSLocationUsageDescription': 'Daily Weather uses your location for your morning weather forecast.',
+        'NSLocationWhenInUseUsageDescription': 'Daily Weather uses your location for your morning weather forecast.'}
+(contents / 'Info.plist').write_bytes(plistlib.dumps(info))
+subprocess.run(['/usr/bin/swiftc', str(ROOT / 'native/main.swift'), '-o', str(contents / 'MacOS/DailyWeather')], check=True)
+subprocess.run(['/usr/bin/codesign', '--force', '--sign', '-', str(APP)], check=True)
+label = 'com.vegerot.daily-weather'
+agent = Path.home() / 'Library/LaunchAgents' / f'{label}.plist'
+agent.parent.mkdir(parents=True, exist_ok=True)
+config = {'Label': label, 'ProgramArguments': [sys.executable, str(ROOT / 'weather.py'), '--scheduled'],
+          'StartCalendarInterval': {'Hour': 7, 'Minute': 0}, 'StartInterval': 900, 'RunAtLoad': True,
+          'StandardOutPath': str(DATA / 'report.log'), 'StandardErrorPath': str(DATA / 'error.log')}
+agent.write_bytes(plistlib.dumps(config))
+domain = f'gui/{os.getuid()}'
+subprocess.run(['/bin/launchctl', 'bootout', f'{domain}/{label}'], capture_output=True)
+subprocess.run(['/bin/launchctl', 'bootstrap', domain, str(agent)], check=True)
+print(f'Installed {APP}\nScheduled 7 a.m. local time, with checks every 15 minutes for wake/travel/retry.')
