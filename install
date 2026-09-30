@@ -5,7 +5,10 @@ import os
 import plistlib
 import subprocess
 import sys
-from weather import APP, DATA, ROOT
+import runpy
+
+weather = runpy.run_path(str(Path(__file__).resolve().with_name("weather")))
+APP, DATA, ROOT = (weather[name] for name in ("APP", "DATA", "ROOT"))
 
 DATA.mkdir(parents=True, exist_ok=True)
 contents = APP / 'Contents'
@@ -20,7 +23,8 @@ subprocess.run(['/usr/bin/codesign', '--force', '--sign', '-', str(APP)], check=
 label = 'com.vegerot.daily-weather'
 agent = Path.home() / 'Library/LaunchAgents' / f'{label}.plist'
 agent.parent.mkdir(parents=True, exist_ok=True)
-config = {'Label': label, 'ProgramArguments': [sys.executable, str(ROOT / 'weather.py'), '--scheduled'],
+config = {'Label': label, 'ProgramArguments': [str(ROOT / 'weather'), '--scheduled'],
+          'EnvironmentVariables': {'PATH': str(Path(sys.executable).parent) + os.pathsep + os.defpath},
           'StartCalendarInterval': {'Hour': 7, 'Minute': 0}, 'StartInterval': 900, 'RunAtLoad': True,
           'StandardOutPath': str(DATA / 'report.log'), 'StandardErrorPath': str(DATA / 'error.log')}
 agent.write_bytes(plistlib.dumps(config))

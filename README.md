@@ -17,10 +17,10 @@ A Mac morning notification showing forecast daily mean, high, and low in °C and
 Requires macOS, Python 3.9+, and Apple's Swift compiler (Command Line Tools). No Python dependencies or API key.
 
 ```sh
-python3 install.py
-python3 weather.py
-python3 weather.py --notify
-python3 weather.py --location 37.7749 -122.4194 --experiment experiment-san-francisco.md
+./install
+./weather
+./weather --notify
+./weather --location 37.7749 -122.4194 --experiment experiment-san-francisco.md
 python3 -m unittest discover --start-directory tests
 ```
 
@@ -30,7 +30,7 @@ Installation creates `~/Library/Application Support/Daily Weather/Daily Weather.
 
 The notification helper checks authorization and submission to macOS. Submission does not prove a banner was visible: Focus settings and notification preferences control presentation. The notification includes the coordinate location so you can check where the forecast applies.
 
-Logs and the last successful scheduled date live in `~/Library/Application Support/Daily Weather/`. Run `python3 weather.py --notify` after enabling permissions to verify a report immediately.
+Logs and the last successful scheduled date live in `~/Library/Application Support/Daily Weather/`. Run `./weather --notify` after enabling permissions to verify a report immediately.
 
 ## Historical experiment
 
@@ -45,7 +45,7 @@ launchctl bootout "gui/$(id -u)/com.vegerot.daily-weather"
 rm "$HOME/Library/LaunchAgents/com.vegerot.daily-weather.plist"
 ```
 
-The source and application remain available. Moving the source directory requires rerunning `install.py` because the launch agent references its absolute path.
+The source and application remain available. Moving the source directory requires rerunning `./install` because the launch agent references its absolute path.
 
 ## Design decisions
 

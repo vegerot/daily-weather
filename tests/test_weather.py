@@ -1,6 +1,10 @@
 import unittest
 from datetime import datetime
-from weather import classify, due, LABELS
+from pathlib import Path
+import runpy
+
+weather = runpy.run_path(str(Path(__file__).resolve().parents[1] / "weather"))
+classify, due, LABELS = (weather[name] for name in ("classify", "due", "LABELS"))
 
 class WeatherTests(unittest.TestCase):
     def test_boundaries(self):

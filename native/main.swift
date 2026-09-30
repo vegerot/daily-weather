@@ -1,3 +1,4 @@
+#!/usr/bin/env swift
 import AppKit
 import CoreLocation
 import UserNotifications
